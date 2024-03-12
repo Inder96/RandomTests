@@ -1,0 +1,14 @@
+float3 CameraPositionWS = LWCToFloat(ResolvedView.WorldCameraOrigin);
+float3 CameraVectorWS = -Parameters.CameraVector;
+
+Color = 0.0;
+Dir = CameraVectorWS;
+
+BlackHoleProperties BHP;
+Mask = 1.0;
+BHP.Mass = Mass;
+BHP.EventHorizon = Mass*2.0;
+
+BlackHole(Color, Mask, Dir, CameraPositionWS, BHP);
+
+return 1.0;

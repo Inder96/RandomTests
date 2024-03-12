@@ -1,0 +1,73 @@
+#define STEPS 250
+
+struct BlackHoleProperties
+{
+    float Mass; //Mass of the Black Hole
+    float EventHorizon; //Black Hole Radius, Mass * 2
+};
+
+// Position of the Black Hole assumed to be at the origin
+
+bool CrossedEventHorizon(float3 RayPos, BlackHoleProperties BHP)
+{
+    if( length(RayPos) <= BHP.EventHorizon)
+    {
+        return true;
+    }
+
+    return false;
+}
+
+float Cross2(float3 A, float3 B)
+{
+    return pow((A.y*B.z) - (B.y*A.z), 2.0) + pow((A.z*B.x) - (A.x*B.z), 2.0) + pow((A.x*B.y) - (A.y*B.x), 2.0);
+}
+
+float3 GravityForce(float3 RayPos, float3 RayDir, BlackHoleProperties BHP)
+{
+    RayDir = normalize(RayDir);
+    float DistToSingularity = length(RayPos);
+    float SquaredDistance = DistToSingularity * DistToSingularity;
+    float3 SingularityToPos = normalize(RayPos);
+
+    return (-3.0 * BHP.Mass) / SquaredDistance * Cross2(SingularityToPos, RayDir) * SingularityToPos;
+}
+
+bool CrossedAccretionDisk(float3 RayStart, float3 RayEnd)
+{
+    return (sign(RayStart.z) != sign(RayEnd.z));
+}
+
+float2 GetZIntercept (float3 RayStart, float3 RayEnd)
+{
+    float3 Dir = normalize(RayEnd - RayStart);
+    float RayLength = length(RayEnd - RayStart);
+    float ProjectionDist = abs(RayStart.z) * RayLength / (abs(RayStart.z) + abs(RayEnd.z));
+    
+}
+
+void BlackHole(inout float4 Color, inout float Mask, inout float3 Dir, float3 CameraPosition, BlackHoleProperties BHP)
+{
+    float3 RayPos = CameraPosition;
+    float3 RayDir = Dir;
+    float3 PrevPos;
+
+    //Begin Raymarch
+    
+    for(int i = 0; i < STEPS; i++)
+    {
+        if(CrossedEventHorizon(RayPos, BHP))
+        {
+            Mask = 0;
+            break;
+        }
+
+        PrevPos = RayPos;
+        RayPos += RayDir + GravityForce(RayPos, RayDir, BHP);
+        RayDir = normalize(RayPos - PrevPos);
+
+    }
+
+    Dir = RayDir;
+
+}
